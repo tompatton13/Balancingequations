@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balancing Chemical Equations – Year 9</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #dde8f5 0%, #e6eef7 100%);
+            min-height: 100vh;
+            padding: 28px 16px 48px;
+            color: #222;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.65rem;
+            color: #0f3057;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7ea8;
+            font-size: 0.88rem;
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
+
+        /* ── Score bar ── */
+        .score-bar {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .badge {
+            background: white;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+        }
+
+        .badge-green { color: #186f3d; }
+        .badge-blue  { color: #1a4f9c; }
+
+        /* ── Difficulty filter ── */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            border: 2px solid #c5d8ee;
+            background: white;
+            color: #667;
+            border-radius: 20px;
+            padding: 6px 20px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .filter-btn:hover { border-color: #4a90e2; color: #4a90e2; }
+
+        .filter-btn.active {
+            background: #0f3057;
+            border-color: #0f3057;
+            color: white;
+        }
+
+        .filter-btn.easy.active   { background: #27ae60; border-color: #27ae60; }
+        .filter-btn.medium.active { background: #e67e22; border-color: #e67e22; }
+        .filter-btn.hard.active   { background: #c0392b; border-color: #c0392b; }
+
+        /* ── Card ── */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 6px 32px rgba(0,0,0,0.11);
+            padding: 28px 26px 26px;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* ── Progress ── */
+        .q-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+
+        .q-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.3px;
+            color: #aaa;
+            font-weight: 600;
+        }
+
+        .diff-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+
+        .pill-easy   { background: #d4edda; color: #186f3d; }
+        .pill-medium { background: #fde5cc; color: #a04000; }
+        .pill-hard   { background: #fbd9d9; color: #922b21; }
+
+        .progress-bar {
+            height: 5px;
+            background: #eef0f5;
+            border-radius: 3px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #27ae60);
+            border-radius: 3px;
+            transition: width 0.55s ease;
+        }
+
+        .eq-name {
+            font-size: 0.94rem;
+            color: #556;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* ── Equation row ── */
+        .equation {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px 12px;
+            padding: 18px 14px;
+            background: #f6f9fd;
+            border-radius: 14px;
+            margin-bottom: 22px;
+        }
+
+        .compound {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .coeff-box {
+            width: 44px;
+            height: 44px;
+            border: 2px solid #bdd0e8;
+            border-radius: 9px;
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f3057;
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        .coeff-box::-webkit-inner-spin-button,
+        .coeff-box::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        .coeff-box:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.18);
+        }
+
+        .coeff-box.got-it {
+            border-color: #27ae60;
+            background: #f0fff6;
+            color: #186f3d;
+        }
+
+        .coeff-box.revealed {
+            border-color: #e67e22;
+            background: #fff8f0;
+            color: #a04000;
+        }
+
+        .formula-text {
+            font-size: 1.32rem;
+            font-weight: 600;
+            color: #0f3057;
+            line-height: 1;
+        }
+
+        .formula-text sub {
+            font-size: 0.72em;
+            vertical-align: sub;
+        }
+
+        .op    { font-size: 1.3rem; color: #bbb; user-select: none; }
+        .arrow { font-size: 1.55rem; color: #99a; user-select: none; padding: 0 4px; }
+
+        /* ── Atom table ── */
+        .section-label {
+            font-size: 0.71rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #b0b8cc;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        .atom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.88rem;
+        }
+
+        .atom-table th {
+            background: #f0f4f9;
+            padding: 7px 10px;
+            font-weight: 600;
+            color: #556;
+            text-align: center;
+        }
+
+        .atom-table th:first-child { text-align: left; border-radius: 7px 0 0 7px; }
+        .atom-table th:last-child  { border-radius: 0 7px 7px 0; }
+
+        .atom-table td {
+            padding: 7px 10px;
+            text-align: center;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .atom-table td:first-child { text-align: left; font-weight: 600; }
+
+        .row-ok  td { color: #186f3d; }
+        .row-bad td { color: #b52020; }
+
+        /* ── Hint / Feedback ── */
+        .hint-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 10px 14px;
+            border-radius: 0 9px 9px 0;
+            color: #78350f;
+            font-size: 0.87rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .feedback {
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.93rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .fb-correct  { background: #d4edda; color: #155724; }
+        .fb-wrong    { background: #fde8e8; color: #7b1c1c; }
+        .fb-revealed { background: #fef3e2; color: #854d0e; }
+
+        /* ── Buttons ── */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.94rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s, background 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-check  { background: #0f3057; color: white; flex: 1; }
+        .btn-check:hover { background: #07213d; }
+
+        .btn-hint   { background: #eef2f8; color: #445; }
+        .btn-hint:hover { background: #dce4f0; }
+
+        .btn-reveal { background: #e67e22; color: white; }
+        .btn-reveal:hover { background: #ca6f1e; }
+
+        .btn-next   { background: #27ae60; color: white; flex: 1; }
+        .btn-next:hover { background: #1e9451; }
+
+        /* ── Results ── */
+        .results { text-align: center; padding: 20px 10px; }
+
+        .big-emoji   { font-size: 3.6rem; margin-bottom: 14px; }
+        .results h2  { font-size: 1.5rem; color: #0f3057; margin-bottom: 8px; }
+        .final-score { font-size: 2.2rem; font-weight: 700; color: #27ae60; margin-bottom: 8px; }
+        .result-msg  { color: #667; margin-bottom: 28px; font-size: 0.95rem; }
+
+        .hidden { display: none; }
+
+        /* ── No-questions notice ── */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #889;
+        }
+
+        .empty-state p { margin-top: 10px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+<h1>Balancing Chemical Equations</h1>
+<p class="subtitle">Year 9 Chemistry Practice</p>
+
+<div class="score-bar">
+    <div class="badge badge-green">✓ Correct: <span id="score-correct">0</span></div>
+    <div class="badge badge-blue">Question <span id="score-q">1</span> of <span id="score-total">10</span></div>
+</div>
+
+<div class="filter-bar">
+    <button class="filter-btn active"  id="filter-all"    onclick="setFilter('all')">All (10)</button>
+    <button class="filter-btn easy"    id="filter-easy"   onclick="setFilter('easy')">Easy (4)</button>
+    <button class="filter-btn medium"  id="filter-medium" onclick="setFilter('medium')">Medium (3)</button>
+    <button class="filter-btn hard"    id="filter-hard"   onclick="setFilter('hard')">Hard (3)</button>
+</div>
+
+<div class="card" id="card"></div>
+
+<script>
+/* ── Equation data ── */
+const EQS = [
+    {
+        name: "Hydrogen + Oxygen → Water",
+        difficulty: "easy",
+        reactants: [
+            { html: "H<sub>2</sub>",                    atoms: {H:2},           ans: 2 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 1 },
+        ],
+        products: [
+            { html: "H<sub>2</sub>O",                   atoms: {H:2, O:1},      ans: 2 },
+        ],
+        hint: "Put 2 in front of H₂O to fix hydrogen. Then count the oxygen atoms on the right and work out how many O₂ you need."
+    },
+    {
+        name: "Sodium + Chlorine → Sodium Chloride",
+        difficulty: "easy",
+        reactants: [
+            { html: "Na",                               atoms: {Na:1},          ans: 2 },
+            { html: "Cl<sub>2</sub>",                   atoms: {Cl:2},          ans: 1 },
+        ],
+        products: [
+            { html: "NaCl",                             atoms: {Na:1, Cl:1},    ans: 2 },
+        ],
+        hint: "Cl₂ has 2 chlorine atoms. NaCl only has one Cl, so you need 2 NaCl — and that tells you how many Na you need too."
+    },
+    {
+        name: "Magnesium + Oxygen → Magnesium Oxide",
+        difficulty: "easy",
+        reactants: [
+            { html: "Mg",                               atoms: {Mg:1},          ans: 2 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 1 },
+        ],
+        products: [
+            { html: "MgO",                              atoms: {Mg:1, O:1},     ans: 2 },
+        ],
+        hint: "O₂ supplies 2 oxygens. Each MgO uses one oxygen, so you'll need 2 MgO. Now count your magnesium atoms."
+    },
+    {
+        name: "Calcium Carbonate → Calcium Oxide + Carbon Dioxide (thermal decomposition)",
+        difficulty: "easy",
+        reactants: [
+            { html: "CaCO<sub>3</sub>",                 atoms: {Ca:1, C:1, O:3},ans: 1 },
+        ],
+        products: [
+            { html: "CaO",                              atoms: {Ca:1, O:1},     ans: 1 },
+            { html: "CO<sub>2</sub>",                   atoms: {C:1, O:2},      ans: 1 },
+        ],
+        hint: "This one's a trap — it's already balanced! All coefficients are 1. Count Ca, C, and O on each side carefully."
+    },
+    {
+        name: "Methane + Oxygen → Carbon Dioxide + Water (combustion)",
+        difficulty: "medium",
+        reactants: [
+            { html: "CH<sub>4</sub>",                   atoms: {C:1, H:4},      ans: 1 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 2 },
+        ],
+        products: [
+            { html: "CO<sub>2</sub>",                   atoms: {C:1, O:2},      ans: 1 },
+            { html: "H<sub>2</sub>O",                   atoms: {H:2, O:1},      ans: 2 },
+        ],
+        hint: "Balance in order: C first (1→1), then H (4 H → 2 H₂O). Now count all oxygen on the right side and figure out your O₂."
+    },
+    {
+        name: "Nitrogen + Hydrogen → Ammonia",
+        difficulty: "medium",
+        reactants: [
+            { html: "N<sub>2</sub>",                    atoms: {N:2},           ans: 1 },
+            { html: "H<sub>2</sub>",                    atoms: {H:2},           ans: 3 },
+        ],
+        products: [
+            { html: "NH<sub>3</sub>",                   atoms: {N:1, H:3},      ans: 2 },
+        ],
+        hint: "N₂ gives 2 nitrogen atoms, so you need 2 NH₃. 2 NH₃ contains 6 hydrogen atoms — how many H₂ gives 6?"
+    },
+    {
+        name: "Zinc + Hydrochloric Acid → Zinc Chloride + Hydrogen",
+        difficulty: "medium",
+        reactants: [
+            { html: "Zn",                               atoms: {Zn:1},          ans: 1 },
+            { html: "HCl",                              atoms: {H:1, Cl:1},     ans: 2 },
+        ],
+        products: [
+            { html: "ZnCl<sub>2</sub>",                 atoms: {Zn:1, Cl:2},    ans: 1 },
+            { html: "H<sub>2</sub>",                    atoms: {H:2},           ans: 1 },
+        ],
+        hint: "ZnCl₂ needs 2 chlorine atoms, so you'll need 2 HCl on the left. Those 2 HCl also provide 2 hydrogen — which makes exactly one H₂."
+    },
+    {
+        name: "Iron + Oxygen → Iron(III) Oxide",
+        difficulty: "hard",
+        reactants: [
+            { html: "Fe",                               atoms: {Fe:1},          ans: 4 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 3 },
+        ],
+        products: [
+            { html: "Fe<sub>2</sub>O<sub>3</sub>",     atoms: {Fe:2, O:3},     ans: 2 },
+        ],
+        hint: "Start with 2 Fe₂O₃ on the right — that needs 4 Fe and 6 O. How many O₂ gives you 6 oxygen atoms? (6 ÷ 2 = ?)"
+    },
+    {
+        name: "Aluminium + Oxygen → Aluminium Oxide",
+        difficulty: "hard",
+        reactants: [
+            { html: "Al",                               atoms: {Al:1},          ans: 4 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 3 },
+        ],
+        products: [
+            { html: "Al<sub>2</sub>O<sub>3</sub>",     atoms: {Al:2, O:3},     ans: 2 },
+        ],
+        hint: "Start with 2 Al₂O₃. That needs 4 Al and 6 O. 6 oxygen atoms from O₂ means 6 ÷ 2 = ? molecules."
+    },
+    {
+        name: "Propane + Oxygen → Carbon Dioxide + Water (combustion)",
+        difficulty: "hard",
+        reactants: [
+            { html: "C<sub>3</sub>H<sub>8</sub>",      atoms: {C:3, H:8},      ans: 1 },
+            { html: "O<sub>2</sub>",                    atoms: {O:2},           ans: 5 },
+        ],
+        products: [
+            { html: "CO<sub>2</sub>",                   atoms: {C:1, O:2},      ans: 3 },
+            { html: "H<sub>2</sub>O",                   atoms: {H:2, O:1},      ans: 4 },
+        ],
+        hint: "Balance C first (3 CO₂), then H (8 H → 4 H₂O). Count total O on the right: 3×2 + 4×1 = 10. So how many O₂?"
+    },
+];
+
+/* ── State ── */
+let currentFilter = 'all';
+let shuffled      = [];
+let qIdx          = 0;
+let correctCount  = 0;
+let questionAnswered = false;
+let wrongAttempts    = 0;
+const SHOW_ANSWER_AFTER = 3;
+
+/* ── Helpers ── */
+function shufflePool(pool) {
+    const a = [...pool];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function getCoeff(id) {
+    const el = document.getElementById(id);
+    if (!el || el.value === '') return 1;
+    const v = parseInt(el.value, 10);
+    return (isNaN(v) || v < 1) ? 1 : Math.min(v, 99);
+}
+
+function computeAtoms(eq) {
+    const left = {}, right = {};
+    eq.reactants.forEach((c, i) => {
+        const k = getCoeff('r' + i);
+        for (const [el, n] of Object.entries(c.atoms)) left[el] = (left[el] || 0) + k * n;
+    });
+    eq.products.forEach((c, i) => {
+        const k = getCoeff('p' + i);
+        for (const [el, n] of Object.entries(c.atoms)) right[el] = (right[el] || 0) + k * n;
+    });
+    return { left, right };
+}
+
+function isBalanced(eq) {
+    const { left, right } = computeAtoms(eq);
+    const elements = new Set([...Object.keys(left), ...Object.keys(right)]);
+    return [...elements].every(el => (left[el] || 0) === (right[el] || 0));
+}
+
+/* ── Live atom table ── */
+function updateTable() {
+    const tbody = document.getElementById('atom-rows');
+    if (!tbody) return;
+    const eq = EQS[shuffled[qIdx]];
+    const { left, right } = computeAtoms(eq);
+    const elements = [...new Set([...Object.keys(left), ...Object.keys(right)])].sort();
+    tbody.innerHTML = elements.map(el => {
+        const l = left[el] || 0, r = right[el] || 0, ok = l === r;
+        return `<tr class="${ok ? 'row-ok' : 'row-bad'}">
+            <td>${el}</td><td>${l}</td><td>${r}</td><td>${ok ? '✓' : '✗'}</td>
+        </tr>`;
+    }).join('');
+}
+
+/* ── Check answer ── */
+function checkAnswer() {
+    if (questionAnswered) return;
+    const eq = EQS[shuffled[qIdx]];
+    const fb = document.getElementById('feedback');
+
+    if (isBalanced(eq)) {
+        fb.className = 'feedback fb-correct';
+        fb.textContent = '✓ Correct! The equation is balanced — well done.';
+        fb.classList.remove('hidden');
+        questionAnswered = true;
+        correctCount++;
+        document.getElementById('score-correct').textContent = correctCount;
+        eq.reactants.forEach((_, i) => document.getElementById('r' + i)?.classList.add('got-it'));
+        eq.products.forEach((_, i)  => document.getElementById('p' + i)?.classList.add('got-it'));
+        document.getElementById('btn-next').classList.remove('hidden');
+        document.getElementById('btn-reveal')?.classList.add('hidden');
+    } else {
+        wrongAttempts++;
+        fb.className = 'feedback fb-wrong';
+        const attemptsLeft = SHOW_ANSWER_AFTER - wrongAttempts;
+        fb.textContent = attemptsLeft > 0
+            ? `✗ Not balanced yet — check which elements don't match. (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} before answer is available)`
+            : '✗ Not balanced yet — check which elements don\'t match. You can now reveal the answer below.';
+        fb.classList.remove('hidden');
+
+        if (wrongAttempts >= SHOW_ANSWER_AFTER) {
+            document.getElementById('btn-reveal')?.classList.remove('hidden');
+        }
+    }
+}
+
+/* ── Show answer ── */
+function showAnswer() {
+    if (questionAnswered) return;
+    const eq = EQS[shuffled[qIdx]];
+
+    eq.reactants.forEach((c, i) => {
+        const inp = document.getElementById('r' + i);
+        if (inp) { inp.value = c.ans; inp.classList.add('revealed'); }
+    });
+    eq.products.forEach((c, i) => {
+        const inp = document.getElementById('p' + i);
+        if (inp) { inp.value = c.ans; inp.classList.add('revealed'); }
+    });
+    updateTable();
+
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback fb-revealed';
+    fb.textContent = '→ Here is the balanced answer. Study why each coefficient is needed before moving on.';
+    fb.classList.remove('hidden');
+
+    questionAnswered = true;
+    document.getElementById('btn-next').classList.remove('hidden');
+    document.getElementById('btn-reveal')?.classList.add('hidden');
+}
+
+/* ── Hint ── */
+function showHint() {
+    const eq = EQS[shuffled[qIdx]];
+    const box = document.getElementById('hint-box');
+    box.textContent = '💡 ' + eq.hint;
+    box.classList.remove('hidden');
+}
+
+/* ── Next question ── */
+function nextQuestion() {
+    qIdx++;
+    if (qIdx >= shuffled.length) showResults();
+    else render();
+}
+
+/* ── Difficulty pill HTML ── */
+function diffPill(d) {
+    return `<span class="diff-pill pill-${d}">${d.charAt(0).toUpperCase() + d.slice(1)}</span>`;
+}
+
+/* ── Render question ── */
+function render() {
+    const eq = EQS[shuffled[qIdx]];
+    questionAnswered = false;
+    wrongAttempts    = 0;
+
+    document.getElementById('score-q').textContent     = qIdx + 1;
+    document.getElementById('score-total').textContent = shuffled.length;
+
+    function buildCompounds(compounds, prefix) {
+        return compounds.map((c, i) =>
+            `<div class="compound">
+                <input type="number" class="coeff-box" id="${prefix}${i}"
+                       min="1" max="99" step="1" placeholder="1"
+                       oninput="updateTable()">
+                <span class="formula-text">${c.html}</span>
+            </div>`
+        ).join('<span class="op">+</span>');
+    }
+
+    const eqHtml = buildCompounds(eq.reactants, 'r')
+        + '<span class="arrow">→</span>'
+        + buildCompounds(eq.products, 'p');
+
+    const isLast = qIdx === shuffled.length - 1;
+
+    document.getElementById('card').innerHTML = `
+        <div class="q-meta">
+            <span class="q-label">Question ${qIdx + 1} of ${shuffled.length}</span>
+            ${diffPill(eq.difficulty)}
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width:${(qIdx / shuffled.length) * 100}%"></div>
+        </div>
+        <p class="eq-name">${eq.name}</p>
+
+        <div class="equation">${eqHtml}</div>
+
+        <p class="section-label">Atom count — updates as you type</p>
+        <table class="atom-table">
+            <thead><tr>
+                <th>Element</th>
+                <th>Left side</th>
+                <th>Right side</th>
+                <th>Match?</th>
+            </tr></thead>
+            <tbody id="atom-rows"></tbody>
+        </table>
+
+        <div class="hint-box hidden" id="hint-box"></div>
+        <div class="feedback hidden" id="feedback"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-check" onclick="checkAnswer()">Check Answer</button>
+            <button class="btn btn-hint"  onclick="showHint()">Hint</button>
+            <button class="btn btn-reveal hidden" id="btn-reveal" onclick="showAnswer()">Show Answer</button>
+            <button class="btn btn-next hidden"   id="btn-next"   onclick="nextQuestion()">
+                ${isLast ? 'See Results →' : 'Next Question →'}
+            </button>
+        </div>
+    `;
+
+    updateTable();
+    document.querySelector('.coeff-box')?.focus();
+}
+
+/* ── Results screen ── */
+function showResults() {
+    const total = shuffled.length;
+    const pct   = Math.round(correctCount / total * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 70 ? '🎉' : '💪';
+    const msg   = pct === 100 ? 'Perfect score! Outstanding work!'
+                : pct >= 70  ? 'Great job! Keep practising to master the rest.'
+                :               'Good effort! Try the harder difficulty or go again.';
+
+    document.getElementById('card').innerHTML = `
+        <div class="results">
+            <div class="big-emoji">${emoji}</div>
+            <h2>Quiz Complete!</h2>
+            <div class="final-score">${correctCount} / ${total}</div>
+            <p class="result-msg">${msg}</p>
+            <button class="btn btn-check" onclick="startQuiz()"
+                    style="display:inline-block; flex:none; margin:0 auto;">
+                Try Again
+            </button>
+        </div>
+    `;
+}
+
+/* ── Filter ── */
+function setFilter(diff) {
+    currentFilter = diff;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('filter-' + diff).classList.add('active');
+    startQuiz();
+}
+
+/* ── Start / restart ── */
+function startQuiz() {
+    const pool = EQS
+        .map((_, i) => i)
+        .filter(i => currentFilter === 'all' || EQS[i].difficulty === currentFilter);
+    shuffled     = shufflePool(pool);
+    qIdx         = 0;
+    correctCount = 0;
+    document.getElementById('score-correct').textContent = 0;
+
+    if (shuffled.length === 0) {
+        document.getElementById('card').innerHTML = `
+            <div class="empty-state">
+                <p>No questions in this category.</p>
+            </div>`;
+        return;
+    }
+
+    render();
+}
+
+/* ── Enter key shortcut ── */
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (!questionAnswered) checkAnswer();
+    else {
+        const nextBtn = document.getElementById('btn-next');
+        if (nextBtn && !nextBtn.classList.contains('hidden')) nextQuestion();
+    }
+});
+
+startQuiz();
+</script>
+</body>
+</html>
